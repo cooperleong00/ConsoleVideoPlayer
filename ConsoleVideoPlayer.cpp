@@ -17,7 +17,7 @@ int main()
 	//getline(cin, cmd);
 	py.SetStdWindow(GetStdHandle(STD_OUTPUT_HANDLE), GetForegroundWindow());
 	//py.SetPlayerConfig(cmd);
-	py.SetPlayerConfig("0.mp4");
+	py.SetPlayerConfig("0.mp4 2.0");
 	py.PlayVideo();
 
 	return 0;

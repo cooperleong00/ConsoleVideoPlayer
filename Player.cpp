@@ -19,7 +19,7 @@ void Player::SetPlayerConfig(string cmd)
 	for (int i = 0; i < cmd.length(); i++) {
 		if (cmd[i] == ' ') {
 			filename = cmd.substr(0, i);
-			try { sp = stod(cmd.substr(i)); speed = sp; }
+			try { sp = stod(cmd.substr(i)); if (sp > 2.0)sp = 2.0; if (sp < 0.5)sp = 0.5; speed = sp; }
 			catch (exception) {
 				cout << "输入的视频倍速有误！";
 				speed = 1.0;
