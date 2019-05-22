@@ -1,115 +1,151 @@
 #include "pch.h"
 #include "Player.h"
-
-Player::Player(HANDLE hd, HWND hwnd, string FileName)
+using namespace std;
+using namespace cv;
+Player::Player()
 {
-	this->MyHwnd = hwnd;
-	this->MyHandle = hd;
-	GetFrameFromVideo(FileName);
+	FramesNum = 0;
+	FrameWidth = 1920;
+	FrameHeight = 1080;
+	speed = 1.0;
+	FrameRate = 30.0;
+}
 
+void Player::SetPlayerConfig(string cmd)
+{
+	string filename=cmd;
+	double sp;
+	//分析输入命令
+	for (int i = 0; i < cmd.length(); i++) {
+		if (cmd[i] == ' ') {
+			filename = cmd.substr(0, i);
+			try { sp = stod(cmd.substr(i)); speed = sp; }
+			catch (exception) {
+				cout << "输入的视频倍速有误！";
+				speed = 1.0;
+			}
+			break;
+		}
+	}
+	GetFrameFromVideo(filename);
+}
+
+void Player::SetStdWindow(HANDLE hd, HWND hwnd)
+{
+	MyHandle = hd;
+	MyHwnd = hwnd;
+}
+
+void Player::SetPixelSize(int size)
+{
+	WCHAR myFont[] = TEXT("Arial");
+	_CONSOLE_FONT_INFOEX fontinfo = { sizeof(CONSOLE_FONT_INFOEX) ,1,{size,size},TMPF_FIXED_PITCH,400, *myFont };
+	SetCurrentConsoleFontEx(MyHandle, false, &fontinfo);
+}
+
+void Player::SetWindowConfig()
+{
+	//得到屏幕长度
+	int screen_width = GetSystemMetrics(SM_CXSCREEN);
+	//得到屏幕宽度
+	int screen_length = GetSystemMetrics(SM_CYSCREEN);
+
+	//获取hwnd的窗口信息，GWL_STYLE获取窗口风格信息
+	//注意：它是由一串二进制代码010101010101011等等共32位构成的，每一位代表一个功能
+	LONG  l_Winstyle = GetWindowLong(MyHwnd, GWL_STYLE);
+
+	//进行设置
+	SetWindowLong(MyHwnd, GWL_STYLE, (l_Winstyle | WS_POPUP | WS_MAXIMIZE));
+
+	//进行设置
+	SetWindowPos(MyHwnd, HWND_TOP, 0, 0, screen_width, screen_length, 0);
 }
 
 void Player::GetFrameFromVideo(string FileName)
 {
-	//Get the video by file name
 	//通过文件名输入视频（绝对路径或相对路径）
-	VideoCapture vc(FileName);
+	VideoCapture vc;
+	try {
+		vc.open(FileName);
+	}
+	catch (Exception) {
+		cout << "视频路径格式有误或视频不存在" << endl;
+		return;
+	}
 
-	//The unchanged frame from video
 	//声明将要预处理的帧
 	Mat frameRaw;
 
-	//Get the totoal amount of frames
 	//获得视频总帧数
 	//CAP_PROP_FRAME_COUNT是opencv宏定义的抓取帧数总量
-	int totalFrameNum = FramesNum =  vc.get(CAP_PROP_FRAME_COUNT);
+	FramesNum = vc.get(CAP_PROP_FRAME_COUNT);
 
 	//获取帧率
-	this->FrameRate = vc.get(CAP_PROP_FPS);
+	FrameRate = vc.get(CAP_PROP_FPS);
 
-	//Get console handle to use the functions of it
 	//得到控制台句柄，以使用控制台函数
 	//说明当前用的控制台是哪个
-	HANDLE temp_hd = MyHandle;
+	//HANDLE temp_hd = MyHandle;
 
-	
 
-	//Set the console cursor invisible for a better performance
+
 	//将光标设为不可见,1表示光标厚度，false表示不可见
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
 
 
-	//Use a vector to stored all the preprocess  frames 
 	//使用vector数组来储存每一帧
 	//+3是为了冗余
-	vector<string> allframe(totalFrameNum + 3);
+	vector<string> allframe(FramesNum + 3);
 
 	//记录开始时间
-	double start = GetTickCount();
+	double start = GetTickCount64();
 
 	//计数用
-	int framediff = 0,width = FrameWidth=80,height = FrameHeight = 45,j,k;
+	int framediff = 0, width = FrameWidth = 320, height = FrameHeight = 180, j, k;
 	string output = "";
-
-	//Grab and preprocess all frames 
+	string sign[2] = { " ","#" };
 	//CAP_PROP_POS_AVI_RATIO是视频相对位置,0~1的一个值
 	//这样写一样是为了冗余 
-
 	//这整个for循环用于读取视频每一帧，并存放到数组里。
-	for (int i = 0; i < totalFrameNum&&vc.get(CAP_PROP_POS_AVI_RATIO) < (1 - 10E-6); i++) {
+	for (int i = 0; i < FramesNum && vc.get(CAP_PROP_POS_AVI_RATIO) < (1 - 10E-6); i++) {
 		Mat frameGray, frameOut;
-		//Set the console cursor invisible for a better performance
 		//将光标设为不可见
-		SetConsoleCursorInfo(temp_hd, &cf);
+		SetConsoleCursorInfo(MyHandle, &cf);
 
-		//the frame changed in gray,and the one changed in size to match the console
 		//定义灰度值矩阵，和输出矩阵
 
-		//Grab the next frame from video
 		//获得下一帧，如果还未获得过，则获取第一帧
 		vc >> frameRaw;
 
-		//Change the RGB color to gray
 		//将当前RGB帧转换为灰度图像
 		cvtColor(frameRaw, frameGray, 7);
 
-		//Change the size of the frame
 		//缩小尺寸
-		resize(frameGray, frameOut, Size(width, height));
+		resize(frameGray, frameOut, Size(FrameWidth, FrameHeight));
 
-		//Stored it in a vector
-		//存储进数组
-		
 
 		//获取输出的字符串
-		//第一个for循环是行遍历，第二个for循环是列遍历
-		for (j=0; j < FrameHeight; j++) {
-			for (k=0; k < FrameWidth; k++) {
+		for (j = 0; j < FrameHeight; j++) {
+			for (k = 0; k < FrameWidth; k++) {
 
 				//二值化显示像素，灰度大于127即显示
-				if (frameOut.at<bool>(j, k) > 127) {
-					output += "#";
-					//putchar(' ');
-				}
-				else {
-					output += " ";
-					//putchar(' ');
-				}
+				output += sign[frameOut.at<bool>(j, k) / 127];
 			}
 			output += "\n";
 		}
 		allframe[i] = output;
-		//Show the number of the current processing frame
+		output = "";
+
 		//提示当前处理到第几个帧了（读取时的第几帧）
 		//SetConsoleCursorPosition用于设置输出frame：（显示帧数）的位置
-		SetConsoleCursorPosition(temp_hd, { 0,0 });
+		SetConsoleCursorPosition(MyHandle, { 0,0 });
 		cout << "frame：" << i;
 
 		//计算fps(读取时的fps)
-		if (GetTickCount() - start >= 1000) {
+		if (GetTickCount64() - start >= 1000) {
 			cout << "  fps：" << i - framediff;
 			framediff = i + 1;
-			start = GetTickCount();
+			start = GetTickCount64();
 		}
 	}
 	Frames = allframe;
@@ -117,62 +153,43 @@ void Player::GetFrameFromVideo(string FileName)
 
 void Player::PlayVideo()
 {
-	//Clear console
 	//清屏
 	system("cls");
 
 	//定义当前帧数
-	int framediff = 0, totalFrameNum = FramesNum,start = 0;
+	int framediff = 0, totalFrameNum = FramesNum, start = 0,startDisplay=0,
+		span = round(1000/(FrameRate*speed))-2,delay=0;
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
-	SetPixelSize(1, 1);
+	SetWindowConfig();
+	SetPixelSize(3);
+	startDisplay = GetTickCount64();
 	for (int i = 0; i < totalFrameNum; i++) {
-		//Make sure the cursor is invisible in every frame
 		//确保每一帧的显示光标都不可见
+		
 		SetConsoleCursorInfo(MyHandle, &cf);
 
 		//把光标位置定义在（0,0）位置，可以实现重置效果
 		SetConsoleCursorPosition(MyHandle, { 0,0 });
-
-		//定义输出的字符串
-
-		//输出获取的字符串
-
-		//Set the current position of the displaying pixel
-		//2*k 增加同行像素间距，否则高宽比不合适
-		//使用设置光标位置的方法比直接putchar帧率高4-5
-		COORD cd = { FrameHeight * 2,FrameWidth };
-		SetConsoleCursorPosition(MyHandle, cd);
+		//输出画面
+		
 		cout << Frames[i] << endl;
-		//休眠	
-		Sleep(30);
+		delay = (GetTickCount64() - startDisplay);
+		//cout << delay;
+		//帧间隔
+		if(delay<span)
+		Sleep(span-delay);
+		//cout << delay  ;
 
 
-		//Show the number of the current playing frame
 		//展示目前的帧数并计算帧率
-		cout << "frame：" << i;
-		if (GetTickCount() - start >= 1000) {
-			cout << "  fps：" << i - framediff;
+		if (GetTickCount64() - start >= 1000) {
+			string temp = "frame：" + to_string(i) + "  fps：" + to_string(i - framediff)+" delay:"+to_string(delay);
+			SetConsoleTitleA(temp.c_str());
 			framediff = i + 1;
-			start = GetTickCount();
+			start = GetTickCount64();
 
 
 		}
+		startDisplay = GetTickCount64();
 	}
-}
-
-void Player::SetPixelSize(int width, int height)
-{
-	WCHAR myFont[] = TEXT("Arial");
-	_CONSOLE_FONT_INFOEX fontinfo = { sizeof(CONSOLE_FONT_INFOEX) ,1,{2,2},TMPF_FIXED_PITCH,400, *myFont };
-	SetCurrentConsoleFontEx(MyHandle, false, &fontinfo);
-}
-
-int Player::GetFramesNum()
-{
-	return this->FramesNum;
-}
-
-double Player::GetFrameRate()
-{
-	return this->FrameRate;
 }
