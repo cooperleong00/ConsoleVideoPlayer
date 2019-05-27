@@ -80,6 +80,16 @@ public:
 	//得到视频高度
 	int Get_frame_height();
 
+	//设置帧率（用户交互）
+	void Set_framerate();
+
+	//设置帧率（带参数）
+	void Set_framerate(int f);
+
+	//得到当前帧率
+	int Get_framerate();
+
+
 private:
 
 	//存放所有帧解析好的的字符串数组

@@ -31,6 +31,7 @@ void Player::Output_to_file()
 	file_txt << speed << endl;
 	file_txt << FrameHeight << endl;
 	file_txt << FrameWidth << endl;
+	file_txt << FrameRate << endl;
 	file_txt << file << endl;
 	file_txt.close();
 }
@@ -38,7 +39,7 @@ void Player::Output_to_file()
 //从文件中获取储存的数据
 void Player::Gain_date_from_file()
 {
-	const int Number_of_int_data = 4;
+	const int Number_of_int_data = 5;
 	//利用数组存储数据
 	int data[Number_of_int_data];
 	ifstream file_txt;
@@ -61,7 +62,7 @@ void Player::Gain_date_from_file()
 	speed = data[1];
 	FrameHeight = data[2];
 	FrameWidth = data[3];
-
+	FrameRate = data[4];
 	file = file_info;
 	//这里不清屏，可以在读取每一帧的时候有个信息显示
 	cout << endl;
@@ -70,7 +71,7 @@ void Player::Gain_date_from_file()
 	cout << "播放速度:" << speed << endl;
 	cout << "视频高度：" << FrameHeight << endl;
 	cout << "视频宽度：" << FrameWidth << endl;
-	
+	cout << "帧率：" << FrameRate << endl;
 	file_txt.close();
 
 }
@@ -86,6 +87,7 @@ void Player::Set()
 {
 	double key = 1;
 	cout << "是否需要进行初始化？输入1进行初始化并进行设置，否则将使用上一次的设置" << endl;
+	cout << endl;
 	cout << "注意，如果是第一次使用该程序，必须初始化！" << endl;
 	cin >> key;
 	system("cls");
@@ -95,6 +97,7 @@ void Player::Set()
 		SetPixelSize();
 		Set_frame_width();
 		Set_frame_height();
+		Set_framerate();
 		Output_to_file();
 	}
 	else {
@@ -106,14 +109,24 @@ void Player::Set()
 //输入文件信息
 void Player::Input_file()
 {
-	cout << "第一步，请输入文件路径及文件名：" << endl;
+	cout << "第一步，输入文件路径及文件名：" << endl;
+	cout << endl;
 	cout << "提示：最简单的方式是将视频放在同一路径下然后直接输入文件名（使用相对路径）" << endl;
+	cout << endl;
 	cout << "否则，需要您输入完整的路径（绝对路径）" << endl;
 	cout << "现在请输入文件路径及文件名：";
 	cin >> file;
-	system("cls");
-
+	//通过文件名输入视频（绝对路径或相对路径）
+	VideoCapture vc;
+	
+	while (!vc.open(file)) {
+		cout << "视频路径格式有误或视频不存在" << endl;
+		cin >> file;
+	}
+		system("cls");
 }
+
+
 
 //得到文件信息
 string Player::Get_file_info()
@@ -124,14 +137,26 @@ string Player::Get_file_info()
 //设置播放速度
 void Player::Set_speed()
 {
-	double sp;
-	cout << "请输入视频的播放速度：（请输入0.5-2.0的一个数字）" << endl;
-	cin >> sp;
-	while (sp > 2 || sp < 0.5) {
-		cout << "输入错误，请重新输入：";
-		cin >> sp;
+	double d;
+	while (1) {
+		string str;
+		cout << "请输入视频的播放速度：（请输入0.5-2.0的一个数字）" << endl;
+		cin >> str;
+		
+		try {
+			d = stod(str);
+			if (d > 2 || d < 0.5) {
+				cout << "输入错误，请重新输入：";
+				continue;
+			}
+			break;
+		}
+		catch (exception) {
+			cout << "输入错误，请重新输入：";
+			continue;
+		}
 	}
-	speed = sp;
+	speed = d;
 }
 
 //设置播放速度（带参数）
@@ -149,9 +174,25 @@ double Player::Get_speed()
 //设置每一帧的宽度
 void Player::Set_frame_width()
 {
+	switch (Myfontsize) {
+	case 1:
+		cout << "推荐宽度800，高度450" << endl;
+		break;
+	case 2:
+		cout << "推荐宽度480，高度270" << endl;
+		break;
+	case 3:
+		cout << "推荐宽度320，高度180" << endl;
+		break;
+	}
+	cout << "如果播放卡顿或闪屏，则请调小宽度和高度" << endl;
 	int w;
 	cout << "请输入您需要的视频宽度：";
 	cin >> w;
+	while (w > 2000 || w < 20) {
+		cout << "输入不合理，请重新输入：" << endl;
+		cin >> w;
+	}
 	cout << endl;
 	FrameWidth = w;
 }
@@ -163,6 +204,10 @@ void Player::Set_frame_height()
 	cout << "请输入您需要的视频高度：";
 	cin >> h;
 	cout << endl;
+	while (h > 2000 || h < 20) {
+		cout << "输入不合理，请重新输入：" << endl;
+		cin >> h;
+	}
 	FrameHeight = h;
 	system("cls");
 }
@@ -189,6 +234,30 @@ int Player::Get_frame_width()
 int Player::Get_frame_height()
 {
 	return FrameHeight;
+}
+
+void Player::Set_framerate()
+{
+	cout << "请输入帧率（一秒播放多少帧）" << endl;
+	cout << "注意，实际帧率与机器配置有关，建议帧率大于20且小于40" << endl;
+	int f;
+	cin >> f;
+	while (f > 65 || f < 5) {
+		cout << "输入不合理！请重新输入：";
+		cin >> f;
+	}
+	FrameRate = f;
+	system("cls");
+}
+
+void Player::Set_framerate(int f)
+{
+	FrameRate = f;
+}
+
+int Player::Get_framerate()
+{
+	return FrameRate;
 }
 
 //设置控制台信息（全屏）
@@ -230,10 +299,7 @@ void Player::GetFrameFromVideo()
 	//获得视频总帧数
 	//CAP_PROP_FRAME_COUNT是opencv宏定义的抓取帧数总量
 	FramesNum = vc.get(CAP_PROP_FRAME_COUNT);
-
-	//获取帧率
-	FrameRate = vc.get(CAP_PROP_FPS);
-
+	
 
 	//将光标设为不可见,1表示光标厚度，false表示不可见
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
@@ -300,7 +366,7 @@ void Player::GetFrameFromVideo()
 	Frames = allframe;
 }
 
-//使用锁帧算法进行放映，原理：每秒划分为二十五段，如果播放完一帧还有时间，则暂停播放直至下一段
+//使用锁帧算法进行放映，原理：每秒划分为n段，如果播放完一帧还有时间，则暂停播放直至下一段
 void Player::PlayVideo()
 {
 	//清屏
@@ -314,7 +380,7 @@ void Player::PlayVideo()
 
 	//定义当前帧数
 	int framediff = 0, totalFrameNum = FramesNum, start = 0,startDisplay=0,
-		span = round(1000/(FrameRate*speed))-2,delay=0;
+		span = round(1000/(FrameRate*speed)),delay=0;
 
 	//光标控制，设定光标大小为1，不可见
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
@@ -322,7 +388,7 @@ void Player::PlayVideo()
 	startDisplay = GetTickCount64();
 	for (int i = 0; i < totalFrameNum; i++) {
 		//确保每一帧的显示光标都不可见
-		
+		startDisplay = GetTickCount64();
 		SetConsoleCursorInfo(MyHandle, &cf);
 
 		//把光标位置定义在（0,0）位置，可以实现重置效果
@@ -334,7 +400,7 @@ void Player::PlayVideo()
 		delay = (GetTickCount64() - startDisplay);
 		//帧间隔
 		if(delay<span)
-		Sleep(span-delay);
+			Sleep(span-delay);
 
 
 		//展示目前的帧数并计算帧率
@@ -346,16 +412,20 @@ void Player::PlayVideo()
 
 
 		}
-		startDisplay = GetTickCount64();
+		
 	}
 }
 
 //设置字体大小（即像素点）
 void Player::SetPixelSize()
 {
-	cout << "现在请输入字体大小：" << endl;
+	cout << "请输入像素点大小（限定范围1-3）" << endl;
 	int size;
 	cin >> size;
+	while (size > 3 || size < 1) {
+		cout << "不规范的输入！请重新输入" << endl;
+		cin >> size;
+	}
 	Myfontsize = size;
 	system("cls");
 }
