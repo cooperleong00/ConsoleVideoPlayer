@@ -14,26 +14,15 @@ Player::Player()
 }
 
 
-
+//得到句柄
 void Player::SetStdWindow(HANDLE hd, HWND hwnd)
 {
 	MyHandle = hd;
 	MyHwnd = hwnd;
 }
 
-void Player::SetPixelSize(int size)
-{
-	Myfontsize = size;
-	WCHAR myFont[] = TEXT("Arial");
-	_CONSOLE_FONT_INFOEX fontinfo = { sizeof(CONSOLE_FONT_INFOEX) ,
-	1,
-	{Myfontsize,Myfontsize},
-	TMPF_FIXED_PITCH,
-	400,
-	*myFont };
-	SetCurrentConsoleFontEx(MyHandle, false, &fontinfo);
-}
 
+//将数据输出到文件，如果没有，就创建一个
 void Player::Output_to_file()
 {
 	ofstream file_txt;
@@ -46,6 +35,7 @@ void Player::Output_to_file()
 	file_txt.close();
 }
 
+//从文件中获取储存的数据
 void Player::Gain_date_from_file()
 {
 	const int Number_of_int_data = 4;
@@ -85,11 +75,13 @@ void Player::Gain_date_from_file()
 
 }
 
+//得到字体大小
 int Player::Get_Myfontsize()
 {
 	return Myfontsize;
 }
 
+//整体的设置
 void Player::Set()
 {
 	double key = 1;
@@ -111,6 +103,7 @@ void Player::Set()
 
 }
 
+//输入文件信息
 void Player::Input_file()
 {
 	cout << "第一步，请输入文件路径及文件名：" << endl;
@@ -122,11 +115,13 @@ void Player::Input_file()
 
 }
 
+//得到文件信息
 string Player::Get_file_info()
 {
 	return file;
 }
 
+//设置播放速度
 void Player::Set_speed()
 {
 	double sp;
@@ -139,16 +134,19 @@ void Player::Set_speed()
 	speed = sp;
 }
 
+//设置播放速度（带参数）
 void Player::Set_speed(double sp)
 {
 	speed = sp;
 }
 
+//返回播放速度
 double Player::Get_speed()
 {
 	return speed;
 }
 
+//设置每一帧的宽度
 void Player::Set_frame_width()
 {
 	int w;
@@ -158,6 +156,7 @@ void Player::Set_frame_width()
 	FrameWidth = w;
 }
 
+//设置每一帧的高度
 void Player::Set_frame_height()
 {
 	int h;
@@ -168,26 +167,31 @@ void Player::Set_frame_height()
 	system("cls");
 }
 
+//设置每一帧的宽度（带参数）
 void Player::Set_frame_width(int w)
 {
 	FrameWidth = w;
 }
 
+//设置每一帧的高度（带参数）
 void Player::Set_frame_height(int h)
 {
 	FrameHeight = h;
 }
 
+//返回帧的宽度
 int Player::Get_frame_width()
 {
 	return FrameWidth;
 }
 
+//返回帧的高度
 int Player::Get_frame_height()
 {
 	return FrameHeight;
 }
 
+//设置控制台信息（全屏）
 void Player::SetWindowConfig()
 {
 	//得到屏幕长度
@@ -207,6 +211,7 @@ void Player::SetWindowConfig()
 	SetWindowPos(MyHwnd, HWND_TOP, 0, 0, screen_width, screen_length, 0);
 }
 
+//从视频中获取每一帧，并且处理，最后存储都字符串数组中
 void Player::GetFrameFromVideo()
 {
 	//通过文件名输入视频（绝对路径或相对路径）
@@ -230,7 +235,6 @@ void Player::GetFrameFromVideo()
 	FrameRate = vc.get(CAP_PROP_FPS);
 
 
-
 	//将光标设为不可见,1表示光标厚度，false表示不可见
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
 
@@ -244,8 +248,13 @@ void Player::GetFrameFromVideo()
 
 	//计数用
 	int framediff = 0, j, k;
+
+	//定义存储一帧的字符串
 	string output = "";
+
+	//定义一个二值化字符串
 	string sign[2] = { " ","#" };
+
 	//CAP_PROP_POS_AVI_RATIO是视频相对位置,0~1的一个值
 	//这样写一样是为了冗余 
 	//这整个for循环用于读取视频每一帧，并存放到数组里。
@@ -291,7 +300,7 @@ void Player::GetFrameFromVideo()
 	Frames = allframe;
 }
 
-//使用锁帧算法进行放映
+//使用锁帧算法进行放映，原理：每秒划分为二十五段，如果播放完一帧还有时间，则暂停播放直至下一段
 void Player::PlayVideo()
 {
 	//清屏
@@ -300,10 +309,14 @@ void Player::PlayVideo()
 	//应用字体设置
 	SetPixelSize(Get_Myfontsize());
 
+	//全屏
+	SetWindowConfig();
+
 	//定义当前帧数
 	int framediff = 0, totalFrameNum = FramesNum, start = 0,startDisplay=0,
 		span = round(1000/(FrameRate*speed))-2,delay=0;
 
+	//光标控制，设定光标大小为1，不可见
 	_CONSOLE_CURSOR_INFO cf = { 1,false };
 
 	startDisplay = GetTickCount64();
@@ -314,8 +327,9 @@ void Player::PlayVideo()
 
 		//把光标位置定义在（0,0）位置，可以实现重置效果
 		SetConsoleCursorPosition(MyHandle, { 0,0 });
-		//输出画面
 		
+		
+		//输出画面
 		cout << Frames[i] << endl;
 		delay = (GetTickCount64() - startDisplay);
 		//帧间隔
@@ -336,6 +350,7 @@ void Player::PlayVideo()
 	}
 }
 
+//设置字体大小（即像素点）
 void Player::SetPixelSize()
 {
 	cout << "现在请输入字体大小：" << endl;
@@ -343,4 +358,18 @@ void Player::SetPixelSize()
 	cin >> size;
 	Myfontsize = size;
 	system("cls");
+}
+
+//设置字体（像素点）大小（带参数）
+void Player::SetPixelSize(int size)
+{
+	Myfontsize = size;
+	WCHAR myFont[] = TEXT("Arial");
+	_CONSOLE_FONT_INFOEX fontinfo = { sizeof(CONSOLE_FONT_INFOEX) ,
+	1,
+	{Myfontsize,Myfontsize},
+	TMPF_FIXED_PITCH,
+	400,
+	*myFont };
+	SetCurrentConsoleFontEx(MyHandle, false, &fontinfo);
 }

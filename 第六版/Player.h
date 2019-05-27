@@ -16,9 +16,6 @@ public:
 
 	//构造函数
 	Player();
-	
-	//读取并解析视频名字，并且获取视频每一帧
-	void SetPlayerConfig(string cmd);
 
 	//获取控制台和前台窗口句柄
 	void SetStdWindow(HANDLE hd, HWND hwnd);
