@@ -8,10 +8,11 @@ using namespace std::chrono;
 Player::Player()
 {
 	FramesNum = 0;
-	FrameWidth = 800;
-	FrameHeight = 450;
+	FrameWidth = 400;
+	FrameHeight = 225;
 	speed = 1.0;
 	FrameRate = 30.0;
+	Myfontsize = 2;
 }
 
 
@@ -81,12 +82,20 @@ int Player::Get_Myfontsize()
 void Player::Set()
 {
 	double key = 1;
-	cout << "是否需要进行初始化？输入1进行初始化并进行设置，否则将使用上一次的设置" << endl;
+	cout << "是否需要进行初始化？输入1进行初始化并进行设置，否则将使用上一次的设置（按000进入开发者模式）" << endl;
 	cout << endl;
 	cout << "注意，如果是第一次使用该程序，必须初始化！" << endl;
 	cin >> key;
 	system("cls");
-	if (key == 1) {
+	if (key == 1) 
+	{
+		Input_file();
+		
+	}
+	else if (key == 000) {
+		cout << "注意，您进入了开发者模式……" << endl;
+		system("pause");
+		system("cls");
 		Input_file();
 		Set_speed();
 		SetPixelSize();
@@ -95,7 +104,8 @@ void Player::Set()
 		Set_framerate();
 		Output_to_file();
 	}
-	else {
+	else
+	{
 		Gain_date_from_file();
 	}
 
