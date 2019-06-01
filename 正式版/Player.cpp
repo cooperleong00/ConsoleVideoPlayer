@@ -82,7 +82,7 @@ int Player::Get_Myfontsize()
 void Player::Set()
 {
 	double key = 1;
-	cout << "是否需要进行初始化？输入1进行初始化并进行设置，否则将使用上一次的设置（按000进入开发者模式）" << endl;
+	cout << "是否需要进行初始化？输入1进行初始化并进行设置，否则将使用上一次的设置（按99进入开发者模式）" << endl;
 	cout << endl;
 	cout << "注意，如果是第一次使用该程序，必须初始化！" << endl;
 	cin >> key;
@@ -92,7 +92,7 @@ void Player::Set()
 		Input_file();
 		
 	}
-	else if (key == 000) {
+	else if (key == 99) {
 		cout << "注意，您进入了开发者模式……" << endl;
 		system("pause");
 		system("cls");
